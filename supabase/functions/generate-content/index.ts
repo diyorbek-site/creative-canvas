@@ -58,6 +58,36 @@ serve(async (req) => {
         - Action-oriented
         - Creates urgency or curiosity
         Return ONLY the CTA text.`,
+
+      testimonial: `Write a realistic, compelling client testimonial. Context: "${context}".
+        Requirements:
+        - 2-3 sentences from a satisfied client's perspective
+        - Include specific results or benefits they experienced
+        - Sound authentic and human, not generic
+        - End with their name and role (make up a realistic one)
+        Return ONLY the testimonial with attribution.`,
+
+      features: `Generate a list of key features/benefits. Context: "${context}".
+        Requirements:
+        - Exactly 4 bullet points
+        - Each point is 4-8 words
+        - Focus on user benefits, not just features
+        - Use action verbs at the start
+        Format: Return each feature on a new line with a bullet point (•).`,
+
+      valueProposition: `Write a compelling value proposition. Context: "${context}".
+        Requirements:
+        - One powerful sentence (max 15 words)
+        - Clearly state the unique value
+        - Address the target audience's main pain point
+        Return ONLY the value proposition.`,
+
+      socialProof: `Generate a social proof statement with stats. Context: "${context}".
+        Requirements:
+        - Include 2-3 impressive but realistic metrics
+        - Format: "Trusted by X+ users | Y% satisfaction | Z awards"
+        - Make numbers believable for the context
+        Return ONLY the social proof line.`,
     };
 
     const systemPrompt = `You are an expert copywriter specializing in portfolio and marketing content. 
