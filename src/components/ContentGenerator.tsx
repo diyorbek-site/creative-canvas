@@ -11,6 +11,10 @@ const contentTypes = [
   { id: "tagline", label: "Tagline", icon: "🎯" },
   { id: "bio", label: "Bio", icon: "👤" },
   { id: "cta", label: "CTA Button", icon: "🚀" },
+  { id: "testimonial", label: "Testimonial", icon: "💬" },
+  { id: "features", label: "Feature List", icon: "📋" },
+  { id: "valueProposition", label: "Value Prop", icon: "💎" },
+  { id: "socialProof", label: "Social Proof", icon: "📊" },
 ];
 
 const ContentGenerator = () => {
