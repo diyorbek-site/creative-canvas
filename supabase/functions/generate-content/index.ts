@@ -1,0 +1,119 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { type, context } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY is not configured");
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    console.log(`Generating content for type: ${type}, context: ${context}`);
+
+    const prompts: Record<string, string> = {
+      headline: `Generate a compelling, punchy headline for a portfolio project. Context: "${context}". 
+        Requirements:
+        - Maximum 8 words
+        - Be creative and memorable
+        - Use strong action verbs
+        - Make it unique and attention-grabbing
+        Return ONLY the headline text, no quotes or extra formatting.`,
+      
+      description: `Write a concise, engaging project description for a portfolio. Context: "${context}".
+        Requirements:
+        - 2-3 sentences maximum
+        - Highlight the value and impact
+        - Use professional but approachable tone
+        - Include what makes it unique
+        Return ONLY the description text.`,
+      
+      tagline: `Create a memorable tagline/slogan. Context: "${context}".
+        Requirements:
+        - Maximum 6 words
+        - Catchy and memorable
+        - Captures the essence
+        Return ONLY the tagline text.`,
+      
+      bio: `Write a professional bio for a portfolio. Context: "${context}".
+        Requirements:
+        - 2-3 sentences
+        - Confident but not arrogant
+        - Highlight expertise and passion
+        Return ONLY the bio text.`,
+      
+      cta: `Generate a compelling call-to-action button text. Context: "${context}".
+        Requirements:
+        - 2-4 words maximum
+        - Action-oriented
+        - Creates urgency or curiosity
+        Return ONLY the CTA text.`,
+    };
+
+    const systemPrompt = `You are an expert copywriter specializing in portfolio and marketing content. 
+      You create concise, impactful, and memorable content that converts visitors into clients.
+      Always respond with ONLY the requested content - no explanations, quotes, or formatting.`;
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompts[type] || prompts.description },
+        ],
+        max_tokens: 200,
+        temperature: 0.8,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Usage limit reached. Please add credits to continue." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      throw new Error(`AI gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const generatedContent = data.choices?.[0]?.message?.content?.trim() || "";
+
+    console.log(`Generated content: ${generatedContent}`);
+
+    return new Response(
+      JSON.stringify({ content: generatedContent }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error in generate-content function:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
