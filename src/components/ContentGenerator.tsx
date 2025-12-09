@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const contentTypes = [
   { id: "headline", label: "Headline", icon: "✨" },
@@ -25,8 +26,6 @@ interface HistoryItem {
   createdAt: string;
 }
 
-const HISTORY_KEY = "content-generator-history";
-
 const ContentGenerator = () => {
   const [context, setContext] = useState("");
   const [selectedType, setSelectedType] = useState("headline");
@@ -35,44 +34,111 @@ const ContentGenerator = () => {
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Load history from localStorage on mount
+  // Load history from database on mount
   useEffect(() => {
-    const saved = localStorage.getItem(HISTORY_KEY);
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse history:", e);
-      }
+    if (user) {
+      loadHistory();
     }
-  }, []);
+  }, [user]);
 
-  // Save history to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-  }, [history]);
+  const loadHistory = async () => {
+    if (!user) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from("content_generations")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
 
-  const addToHistory = (type: string, context: string, content: string) => {
-    const newItem: HistoryItem = {
-      id: crypto.randomUUID(),
-      type,
-      context,
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    setHistory((prev) => [newItem, ...prev].slice(0, 20)); // Keep last 20 items
+      if (error) throw error;
+
+      const historyItems: HistoryItem[] = (data || []).map((item) => ({
+        id: item.id,
+        type: item.content_type,
+        context: item.context,
+        content: item.generated_content,
+        createdAt: item.created_at,
+      }));
+
+      setHistory(historyItems);
+    } catch (error) {
+      console.error("Failed to load history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
   };
 
-  const deleteHistoryItem = (id: string) => {
-    setHistory((prev) => prev.filter((item) => item.id !== id));
-    toast({ title: "Item removed from history" });
+  const addToHistory = async (type: string, context: string, content: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("content_generations")
+        .insert({
+          user_id: user.id,
+          content_type: type,
+          context: context,
+          generated_content: content,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newItem: HistoryItem = {
+        id: data.id,
+        type: data.content_type,
+        context: data.context,
+        content: data.generated_content,
+        createdAt: data.created_at,
+      };
+
+      setHistory((prev) => [newItem, ...prev].slice(0, 20));
+    } catch (error) {
+      console.error("Failed to save to history:", error);
+    }
   };
 
-  const clearHistory = () => {
-    setHistory([]);
-    toast({ title: "History cleared" });
+const deleteHistoryItem = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("content_generations")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setHistory((prev) => prev.filter((item) => item.id !== id));
+      toast({ title: "Item removed from history" });
+    } catch (error) {
+      console.error("Failed to delete history item:", error);
+      toast({ title: "Failed to delete", variant: "destructive" });
+    }
+  };
+
+  const clearHistory = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("content_generations")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setHistory([]);
+      toast({ title: "History cleared" });
+    } catch (error) {
+      console.error("Failed to clear history:", error);
+      toast({ title: "Failed to clear history", variant: "destructive" });
+    }
   };
 
   const loadFromHistory = (item: HistoryItem) => {

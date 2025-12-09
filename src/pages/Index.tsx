@@ -2,7 +2,6 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import ShowcaseSection from "@/components/ShowcaseSection";
-import ContentGenerator from "@/components/ContentGenerator";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import FloatingShapes from "@/components/FloatingShapes";
@@ -27,7 +26,6 @@ const Index = () => {
         <HeroSection />
         <FeaturesSection />
         <ShowcaseSection />
-        <ContentGenerator />
         <CTASection />
         <Footer />
       </div>
