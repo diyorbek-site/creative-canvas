@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Sparkles } from "lucide-react";
+import { Menu, LogOut, Sparkles, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +60,17 @@ const Navbar = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               AI Generator
             </Button>
+            {user && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
+            )}
             {user ? (
               <Button 
                 variant="ghost" 
@@ -118,6 +129,19 @@ const Navbar = () => {
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI Generator
               </Button>
+              {user && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    navigate("/dashboard");
+                    setIsOpen(false);
+                  }}
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+              )}
               {user ? (
                 <Button 
                   variant="ghost" 
