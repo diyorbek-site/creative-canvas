@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Sparkles, LayoutDashboard } from "lucide-react";
+import { Menu, LogOut, Sparkles, LayoutDashboard, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,15 +61,26 @@ const Navbar = () => {
               AI Generator
             </Button>
             {user && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => navigate("/dashboard")}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <LayoutDashboard className="w-4 h-4 mr-2" />
-                Dashboard
-              </Button>
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate("/dashboard")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Button>
+              </>
             )}
             {user ? (
               <Button 
@@ -130,17 +141,30 @@ const Navbar = () => {
                 AI Generator
               </Button>
               {user && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => {
-                    navigate("/dashboard");
-                    setIsOpen(false);
-                  }}
-                >
-                  <LayoutDashboard className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Button>
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      navigate("/dashboard");
+                      setIsOpen(false);
+                    }}
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      navigate("/profile");
+                      setIsOpen(false);
+                    }}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Button>
+                </>
               )}
               {user ? (
                 <Button 
