@@ -67,10 +67,13 @@ serve(async (req) => {
 
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
-      throw new Error("LOVABLE_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Service configuration error. Please try again later." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    console.log(`Generating content for type: ${type}, context: ${context}`);
+    console.log(`Generating content for user: ${user.id}, type: ${type}`);
 
     const prompts: Record<string, string> = {
       headline: `Generate a compelling, punchy headline for a portfolio project. Context: "${context}". 
@@ -168,23 +171,26 @@ serve(async (req) => {
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "Service temporarily unavailable. Please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Usage limit reached. Please add credits to continue." }),
+          JSON.stringify({ error: "Service limit reached. Please try again later." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      throw new Error(`AI gateway error: ${response.status}`);
+      return new Response(
+        JSON.stringify({ error: "An error occurred. Please try again." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
     const generatedContent = data.choices?.[0]?.message?.content?.trim() || "";
 
-    console.log(`Generated content: ${generatedContent}`);
+    console.log(`Content generated successfully for user: ${user.id}`);
 
     return new Response(
       JSON.stringify({ content: generatedContent }),
@@ -193,7 +199,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in generate-content function:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "An error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
