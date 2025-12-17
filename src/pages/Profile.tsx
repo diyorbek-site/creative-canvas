@@ -50,7 +50,17 @@ const Profile = () => {
 
       if (data) {
         setDisplayName(data.display_name || "");
-        setAvatarUrl(data.avatar_url);
+        
+        // Generate signed URL if avatar path exists
+        if (data.avatar_url) {
+          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from("avatars")
+            .createSignedUrl(data.avatar_url, 3600); // 1 hour expiry
+          
+          if (!signedUrlError && signedUrlData) {
+            setAvatarUrl(signedUrlData.signedUrl);
+          }
+        }
       }
     } finally {
       setIsLoading(false);
@@ -98,28 +108,28 @@ const Profile = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
-
-      const newAvatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      // Update profile with new avatar URL
+      // Store the file path (not the URL) in the database
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: newAvatarUrl })
+        .update({ avatar_url: filePath })
         .eq("user_id", user.id);
 
       if (updateError) throw updateError;
 
-      setAvatarUrl(newAvatarUrl);
+      // Generate signed URL for display
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(filePath, 3600);
+
+      if (signedUrlError) throw signedUrlError;
+
+      setAvatarUrl(signedUrlData.signedUrl);
       toast({ title: "Avatar updated successfully!" });
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
       toast({
         title: "Upload failed",
-        description: error.message,
+        description: "Failed to upload avatar. Please try again.",
         variant: "destructive",
       });
     } finally {
