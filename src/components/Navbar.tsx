@@ -39,7 +39,7 @@ const Navbar = () => {
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Xizmatlar
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/portfolio" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Portfolio
             </a>
             <a href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -121,7 +121,7 @@ const Navbar = () => {
               <a href="#" className="text-foreground hover:text-primary transition-colors">
                 Xizmatlar
               </a>
-              <a href="#" className="text-foreground hover:text-primary transition-colors">
+              <a href="/portfolio" className="text-foreground hover:text-primary transition-colors">
                 Portfolio
               </a>
               <a href="/about" className="text-foreground hover:text-primary transition-colors">
