@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Generator from "./pages/Generator";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -25,6 +26,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/generator"
